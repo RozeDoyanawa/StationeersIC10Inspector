@@ -171,7 +171,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
         
 
         public override bool CanLogicWrite(LogicType logicType) {
-            ConsoleWindow.Print("CanLogicWrite( " + logicType + ")");
+            //ConsoleWindow.Print("CanLogicWrite( " + logicType + ")");
             if (logicType == LOGIC_TYPE) {
                 return true;
             }
@@ -179,15 +179,15 @@ namespace ridorana.IC10Inspector.Objects.Items {
         }
 
         public override void SetLogicValue(LogicType logicType, double value) {
-            ConsoleWindow.Print("SetLogicType( " + logicType + ")="  + value);
+            //ConsoleWindow.Print("SetLogicType( " + logicType + ")="  + value);
             if (logicType == LOGIC_TYPE) {
-                ConsoleWindow.Print("Received device id "  + (long)value);
+                //ConsoleWindow.Print("Received device id "  + (long)value);
                 if (value > 0) {
                     _interpretDevice = Find<CircuitHousing>((long)value);
                 } else {
                     _interpretDevice = null;
                 }
-                ConsoleWindow.Print(_interpretDevice != null?_interpretDevice.ToString():"NullDevice");
+                //ConsoleWindow.Print(_interpretDevice != null?_interpretDevice.ToString():"NullDevice");
             }else{
                 base.SetLogicValue(logicType, value);
             }
@@ -205,8 +205,8 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
         private void FetchCPUData() {
             if (_interpretDevice != null) {
-                ConsoleWindow.Print("CW.P: FetchCPUData()");
-                Debug.Log("D.L: FetchCPUData()");
+                //ConsoleWindow.Print("CW.P: FetchCPUData()");
+                //Debug.Log("D.L: FetchCPUData()");
                 CircuitHousing housing = _interpretDevice as CircuitHousing;
                 if (housing != null) {
                     Slot chipSlot = housing.Slots[0];

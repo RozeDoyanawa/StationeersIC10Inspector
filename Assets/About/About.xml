@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Name>IC10Inspector [StationeersMods]</Name>
-  <Author>Example</Author>
-  <Version>0.2.5116.23239.1</Version>
+  <Name>IC10 Inspector [StationeersMods]</Name>
+  <Author>Roze</Author>
+  <Version>0.1</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]IC10Inspector[/h1]
     [b]WARNING:[/b] This is a StationeersMods Plugin Mod. It requires Bepinex to be installed with the StationeersMods plugin.
-    See: https://jixxed.github.io/StationeersMods/
-    Description for IC10Inspector
+    Adds an inspector for IC10 chips. Readout includes current values for registers and stack. Updated every tick. 
+	Tested to work in singleplayer and dedicated servers. Untested in P2P multiplayer. 
   </Description>
   <!-- Ingame Description using TMP tags for Workshop menu -->
   <InGameDescription>
     <![CDATA[<size="30"><color=#ffa500> IC10Inspector </color></size>
 <b>WARNING:</b> <color=#ff0000>This is a StationeersMods Plugin Mod. It requires Bepinex to be installed with the StationeersMods plugin.</color>
-See: https://jixxed.github.io/StationeersMods/
-Description for IC10Inspector
+Adds an inspector for IC10 chips. Readout includes current values for registers and stack. Updated every tick. 
+Tested to work in singleplayer and dedicated servers. Untested in P2P multiplayer. 
 ]]>
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
-    [h3]Version 0.2.5116.23239.1:[/h3]
+    [h3]Version 0.1:[/h3]
     [list]
     [*]Initial release
     [/list]
@@ -27,10 +27,14 @@ Description for IC10Inspector
   <!-- StationeersMods and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
   <Tags>
     <Tag>StationeersMods</Tag>
+    <Tag>Items</Tag>
+    <Tag>Cartridge</Tag>
+    <Tag>IC10</Tag>
   </Tags>
   <!-- Automatic downloads of dependencies -->
   <Dependencies />
   <!-- Automatic reordering of the mods list -->
   <LoadBefore />
   <LoadAfter />
+  <WorkshopHandle>3508602436</WorkshopHandle>
 </ModMetadata>
