@@ -156,8 +156,8 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             refIdToSend = 0;
                         }
 
-                        new SetLogicFromClient {
-                            LogicId = ReferenceId, LogicType = LOGIC_TYPE, Value = refIdToSend
+                        new SetLogicValueMessage  {
+                            DeviceReferenceId = ReferenceId, LogicType = LOGIC_TYPE, LogicValue = refIdToSend
                         }.SendToServer();
                     }
 
@@ -172,9 +172,9 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
         public override bool CanLogicWrite(LogicType logicType) {
             //ConsoleWindow.Print("CanLogicWrite( " + logicType + ")");
-            if (logicType == LOGIC_TYPE) {
-                return true;
-            }
+            //if (logicType == LOGIC_TYPE) {
+            //    return true;
+            //}
             return base.CanLogicWrite(logicType);
         }
 

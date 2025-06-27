@@ -21,7 +21,8 @@ Tested to work in singleplayer and dedicated servers. Untested in P2P multiplaye
   <ChangeLog>
     [h3]Version 0.1:[/h3]
     [list]
-    [*]Initial release
+    [*]Fix mod thumbnails
+    [*]Changed mp messaging model
     [/list]
   </ChangeLog>
   <!-- StationeersMods and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
