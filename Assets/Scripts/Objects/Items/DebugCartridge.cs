@@ -10,14 +10,11 @@ using Assets.Scripts.Objects.Items;
 using Assets.Scripts.Objects.Motherboards;
 using Assets.Scripts.Objects.Pipes;
 using Assets.Scripts.UI;
+using ridorana.IC10Inspector.Utilities;
 using StationeersMods.Interface;
 using TMPro;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.SocialPlatforms;
 using UnityEngine.UI;
-using Console = Assets.Scripts.Objects.Electrical.Console;
 using Object = UnityEngine.Object;
 
 namespace ridorana.IC10Inspector.Objects.Items {
@@ -25,10 +22,8 @@ namespace ridorana.IC10Inspector.Objects.Items {
     public class DebugCartridge : Cartridge, IPatchable, ISetable {
  
         [SerializeField] private TextMeshProUGUI _displayTextMesh;
-        
-        
-        public delegate void ICopyCallback<T>(T target, T source);
-        
+
+
         private static readonly string NotApplicableString = "N/A";
         private string _selectedText = string.Empty;
         private string _outputText = string.Empty;
@@ -38,50 +33,34 @@ namespace ridorana.IC10Inspector.Objects.Items {
         private Device _lastScannedDevice2;
         private bool _needTopScroll;
 
-        private readonly List<ChangedStack> ChangeList = new List<ChangedStack>();
-        
-        private ICopyCallback<Text> CopyTextFontData = (target, source) => {
-            target.font = source.font;
-            target.material = source.material;
-        };
-        
-        private ICopyCallback<TextMeshProUGUI> CopyMeshTextFontData = (target, source) => {
-            target.font = source.font;
-            target.material = source.material;
-        };
-
-        private class ChangedStack {
-            public short Offset;
-
-            public double Data;
-        }
+        private readonly Dictionary<short, double> ChangeList = new();
 
 
         public void PatchOnLoad() {
-            var existing = StationeersModsUtility.FindPrefab("CartridgeConfiguration");
+            var existingCartridge = StationeersModsUtility.FindPrefab("CartridgeConfiguration");
             
-            this.Thumbnail = existing.Thumbnail;
-            this.Blueprint = existing.Blueprint;
+            this.Thumbnail = existingCartridge.Thumbnail;
+            this.Blueprint = existingCartridge.Blueprint;
 
-            var erenderer = existing.GetComponent<MeshRenderer>();
+            var erenderer = existingCartridge.GetComponent<MeshRenderer>();
             var renderer = this.GetComponent<MeshRenderer>();
             renderer.materials = erenderer.materials;
-            var emesh = existing.GetComponent<MeshFilter>();
+            var emesh = existingCartridge.GetComponent<MeshFilter>();
             var mesh = this.GetComponent<MeshFilter>();
             mesh.mesh = emesh.mesh;
             
             //Component[] localComps = GetComponentsInChildren(typeof(Component));
             //Component[] factoryComps = existing.GetComponentsInChildren(typeof(Component));
 
-            CopyParams(this, existing, "PanelNormal/Title", CopyTextFontData);
-            CopyParams<TextMeshProUGUI>(this, existing, "PanelNormal/ScrollPanel/Viewport/Content/Text", (target, source) => { 
-                CopyMeshTextFontData(target, source);
+            PrefabUtils.CopyParams<Text>(this, existingCartridge, "PanelNormal/Title", PrefabUtils.CopyTextFontData);
+            PrefabUtils.CopyParams<TextMeshProUGUI>(this, existingCartridge, "PanelNormal/ScrollPanel/Viewport/Content/Text", (target, source) => { 
+                PrefabUtils.CopyMeshTextFontData(target, source);
                 target.fontSize = 9;
                 target.font = InputSourceCode.Instance.LineOfCodePrefab.FormattedText.font;
             }); 
-            CopyParams(this, existing, "PanelNormal/Selected", CopyMeshTextFontData);
-            CopyParams(this, existing, "PanelNormal/ActualTitle", CopyTextFontData);
-            CopyParams(this, existing, "PanelNormal/DevicesTitle", CopyTextFontData);
+            PrefabUtils.CopyParams<TextMeshProUGUI>(this, existingCartridge, "PanelNormal/Selected", PrefabUtils.CopyMeshTextFontData);
+            PrefabUtils.CopyParams<Text>(this, existingCartridge, "PanelNormal/ActualTitle", PrefabUtils.CopyTextFontData);
+            PrefabUtils.CopyParams<Text>(this, existingCartridge, "PanelNormal/DevicesTitle", PrefabUtils.CopyTextFontData);
 
         }
 
@@ -94,10 +73,11 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
                 lock (ChangeList) {
                     writer.WriteInt16((short)ChangeList.Count);
-                    foreach (ChangedStack item in ChangeList) {
-                        writer.WriteInt16(item.Offset);
-                        writer.WriteDouble(item.Data);
+                    foreach (short index in ChangeList.Keys) {
+                        writer.WriteInt16(index);
+                        writer.WriteDouble(ChangeList[index]);
                     }
+                    ChangeList.Clear();
                 }
             }
         }
@@ -124,13 +104,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
         public override void OnInteractableUpdated(Interactable interactable) {
             base.OnInteractableUpdated(interactable);
         }
-
-
-        void CopyParams<T>(Thing target, Thing source, string path, ICopyCallback<T> callback) {
-            T l = this.transform.Find(path).GetComponent<T>();
-            T e = source.transform.Find(path).GetComponent<T>();
-            callback(l, e);
-        }
+        
         
         
 
@@ -141,7 +115,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
         public override void OnMainTick() {
             base.OnMainTick();
                 if (GameManager.RunSimulation) {
-                    if (ScannedDevice != null && _interpretDevice == null) {
+                    if (ScannedDevice != null && _interpretDevice != ScannedDevice) {
                         _interpretDevice = ScannedDevice;
                     }
 
@@ -222,17 +196,16 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
                         _registerBuffer[LineNumberOffset] = programmableChip.LineNumber;
                         lock (ChangeList) {
-                            ChangeList.Clear();
                             double[] stack = CopyStack(programmableChip);
                             for (short i = 0; i < stack.Length; i++) {
                                 double o = _stackCheck[i];
                                 _stackBuffer[i] = _stackCheck[i] = stack[i];
                                 if (o != _stackCheck[i]) {
-                                    ChangeList.Add(new ChangedStack{
-                                        Offset = i, Data = _stackCheck[i]
-                                    });
+                                    ChangeList.TryAdd(i, _stackCheck[i]);
                                 }
                             }
+
+                            changed |= ChangeList.Count > 0;
                         }
 
                         if (changed && NetworkManager.IsServer) {

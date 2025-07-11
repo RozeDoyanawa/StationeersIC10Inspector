@@ -15,5 +15,26 @@
                 <Hydrocarbon>0</Hydrocarbon>
             </Recipe>
         </RecipeData>
+        <RecipeData>
+            <PrefabName>MotherboardDebugAnalyzer</PrefabName>
+            <Recipe>
+                <Time>5</Time>
+                <Energy>500</Energy>
+                <Iron>0</Iron>
+                <Copper>5</Copper>
+                <Gold>5</Gold>
+                <Silver>0</Silver>
+                <Lead>0</Lead>
+                <Nickel>0</Nickel>
+                <Steel>0</Steel>
+                <Solder>0</Solder>
+                <Electrum>0</Electrum>
+                <Invar>0</Invar>
+                <Constantan>0</Constantan>
+                <Carbon>0</Carbon>
+                <Hydrocarbon>0</Hydrocarbon>
+                <Uranium>0</Uranium>
+            </Recipe>
+        </RecipeData>
     </ElectronicsPrinterRecipes>
 </GameData>

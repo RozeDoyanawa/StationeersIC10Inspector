@@ -9,5 +9,10 @@
       <Value>Cartridge (IC10 Inspector)</Value>
       <Description></Description>
     </RecordThing>
+    <RecordThing>
+      <Key>MotherboardDebugAnalyzer</Key>
+      <Value>Motherboard (IC10 Debugger)</Value>
+      <Description></Description>
+    </RecordThing>
   </Things>
 </Language>

@@ -20,7 +20,8 @@
         "0Harmony.dll",
         "BepInEx.dll",
         "UniTask.dll",
-        "RG.ImGui.dll"
+        "RG.ImGui.dll",
+        "LaunchPadBooster.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
