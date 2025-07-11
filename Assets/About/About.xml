@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Name>IC10 Inspector [StationeersMods]</Name>
+  <Name>IC10 Inspector/Debugger [StationeersLaunchPad]</Name>
   <Author>Roze</Author>
   <Version>0.2</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
-  <Description>[h1]IC10Inspector[/h1]
-    [b]WARNING:[/b] This is a StationeersMods Plugin Mod. It requires Bepinex to be installed with the StationeersMods plugin.
+  <Description>[h1]IC10 Inspector/Debugger[/h1]
+    [b]WARNING:[/b] This is a StationeersLaunchPad Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.
 
     Adds an inspector and debugger for IC10 chips. Readout includes current values for registers and stack. Updated every tick.
     The debugger can frame-step IC10 programs and also shows current code-line and the fiew surrounding it.
@@ -15,12 +15,14 @@
 
     Please report any bugs in the appropriate discord channels:
     #Modding @ [url=https://discord.com/invite/stationeers]Official Stationeers discord[/url].
-    [url=https://discord.gg/3DBbPSUG95]#Projects[/url]->[url=https://discord.com/channels/1370137389837717545/1388885375035899934]IC10 Debugger[/url] @ [url=https://discord.gg/5qZbPVTw2U]Stationeers Modding Discord server[/url] 
+    [url=https://discord.gg/3DBbPSUG95]#Projects[/url]->[url=https://discord.com/channels/1370137389837717545/1388885375035899934]IC10 Debugger[/url] @ [url=https://discord.gg/5qZbPVTw2U]Stationeers Modding Discord server[/url]
+
+    [b]Requires StationeersLaunchPad v0.2.0 or higher[/b]
   </Description>
   <!-- Ingame Description using TMP tags for Workshop menu -->
   <InGameDescription>
-    <![CDATA[<size="30"><color=#ffa500> IC10Inspector </color></size>
-<b>WARNING:</b> <color=#ff0000>This is a StationeersMods Plugin Mod. It requires Bepinex to be installed with the StationeersMods plugin.</color>
+    <![CDATA[<size="30"><color=#ffa500> IC10 Inspector/Debugger </color></size>
+<b>WARNING:</b> <color=#ff0000>This is a StationeersLaunchPad Plugin Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.</color>
 
 Adds an inspector and debugger for IC10 chips. Readout includes current values for registers and stack. Updated every tick.
 The debugger can frame-step IC10 programs and also shows current code-line and the fiew surrounding it. 
@@ -30,6 +32,8 @@ Tested to work in singleplayer. Untested in P2P multiplayer and dedicated server
 Please report any bugs in the appropriate discord channels:
  #Modding @ Official Stationeers discord. 
  #Projects->IC10 Debugger @ Stationeers Modding Discord server
+ 
+ <b>Requires StationeersLaunchPad v0.2.0 or higher</b>
 ]]>
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
