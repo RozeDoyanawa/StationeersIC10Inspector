@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -52,7 +53,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 return !step && !pause && !slowMode;
             }
         }
-        
+
         [HarmonyPatch(typeof(ProgrammableChip), "Execute", typeof(int))]
         public static class PatchProgrammableChip {
             
@@ -719,11 +720,11 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 for (var i = 0; i < _registerBuffer.Length; i++) writer.WriteDouble(_registerBuffer[i]);
 
                 lock (ChangeList) {
-                    if (ChangeList.Count > 0) {
-                        Console.Write("Writing " + ChangeList.Count + " changes to clients\n");
-                        Console.Write(ChangeList.ToString());
-                        Console.Write("\n");
-                    }
+                    //if (ChangeList.Count > 0) {
+                    //    Console.Write("Writing " + ChangeList.Count + " changes to clients\n");
+                    //    Console.Write(ChangeList.ToString());
+                    //    Console.Write("\n");
+                    //}
                     writer.WriteInt16((short)ChangeList.Count);
                     foreach (var index in ChangeList.Keys) {
                         writer.WriteInt16(index);
@@ -827,7 +828,18 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 return;
             }
             List<ILogicable> list = ParentComputer.DeviceList();
-            list.Sort((a, b) => a.DisplayName.CompareTo(b.DisplayName));
+            list.Sort((a, b) => {
+                if (a == null && b == null) {
+                    return 0;
+                }
+                if(a?.DisplayName == null) {
+                    return 1;
+                }
+                if (b?.DisplayName == null) {
+                    return -1;
+                }
+                return a.DisplayName.CompareTo(b.DisplayName);
+            });
             AccessibleProgrammableChipList.options.Clear();
             _circuitHolders.Clear();
             foreach (ILogicable item2 in list)
@@ -879,7 +891,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             Stepping = 4
         }
         
-        private string[] _codeLines = {"", "", "", ""};
+        private readonly string[] _codeLines = Enumerable.Repeat(String.Empty, CodeLinesTotal).ToArray(); //new string[CodeLinesBefore + CodeLinesAhead];
 
         private void FetchCPUData() {
             if (_interpretDevice != null) {
@@ -920,9 +932,9 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
                             changed |= ChangeList.Count > 0;
                             
-                            if (ChangeList.Count > 0) {
-                                Console.Write("Scheduled " + ChangeList.Count + " changes to send to clients");
-                            }
+                            //if (ChangeList.Count > 0) {
+                            //    Console.Write("Scheduled " + ChangeList.Count + " changes to send to clients");
+                            //}
                         }
 
                         if (changed && NetworkManager.IsServer) NetworkUpdateFlags |= (ushort)NETWORK_UPDATE_ID;
@@ -933,21 +945,25 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
         private bool _codeChanged = false;
 
+        private const int CodeLinesBefore = 2;
+        private const int CodeLinesTotal = 6;
+        private const int StackValuesBefore = 3;
+        private const int StackValuesAhead = 4;
         
         [MethodImpl(MethodImplOptions.NoOptimization)]
         private void CopyCodeLines(string[] codeLines, ProgrammableChip chip) {
             int lineNumber = (int)chip.LineNumber;
             FieldInfo field = chip.GetType().GetField("_LinesOfCode", BindingFlags.Instance | BindingFlags.NonPublic);
-            Debug.Log(field);
+            //Debug.Log(field);
             var o = field.GetValue(chip);
             IList list = (IList)o;
             IEnumerable enumerable = (IEnumerable)o;
             //MethodInfo item = o.GetType().GetMethod("Item");
             //MethodInfo count = o.GetType().GetMethod("Count");
-            Debug.Log(o);
+            //Debug.Log(o);
             int length = list.Count; //(int)count.Invoke(o);
-            int start = Math.Min(Math.Max(lineNumber - 1, 0), length);
-            int end = Math.Min(start + 4, length);
+            int start = Math.Min(Math.Max(lineNumber - CodeLinesBefore, 0), length);
+            int end = Math.Min(start + CodeLinesTotal, length);
             int j = 0;
             bool codeChanged = false;
             FieldInfo LineOfCode = null;
@@ -967,7 +983,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 }
             }
 
-            for (int i = j; i < 3; i++) {
+            for (int i = j; i < (CodeLinesTotal); i++) {
                 string oldLine = codeLines[i];
                 codeLines[i] = string.Empty;
                 codeChanged |= String.Equals(oldLine, codeLines[j]);
@@ -1053,21 +1069,31 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             stringBuilder.Append(": \n");
                             row++;
                             var sp = (int)_registerBuffer[StackPointerOffset];
-                            var start = Math.Min(Math.Max(sp - 3, 0), StackBufferCount);
-                            var end = Math.Min(Math.Max(sp + 4, 0), StackBufferCount);
+                            var start = Math.Min(Math.Max(sp - StackValuesBefore, 0), StackBufferCount);
+                            var end = Math.Min(Math.Max(sp + StackValuesAhead, 0), StackBufferCount);
                             int codeIndex = 0;
-                            for (var i = start; i < end; i++) {
-                                var rel = i - sp;
-                                var addr = $"sp{(rel >= 0 ? "+" : "")}{rel:D}";
-                                double value = _stackBuffer[i];
-                                string numericColor = value == 0 ? "707070" : "20B2AA";
-                                string registerColor = "62B8E9";
-                                
-                                if ((_hoverCol == 0 || _hoverCol == 1) && row == _hoverRow) {
-                                    numericColor = "ff66cc";
-                                    registerColor = "ff66cc";
+                            for (var i = 0; i < 8; i++) {
+                                var _sp = i + start;
+                                var rel = _sp - sp;
+                                string stackString;
+                                if (_sp <= end) {
+                                    var addr = $"sp{(rel >= 0 ? "+" : "")}{rel:D}";
+                                    double value = _stackBuffer[_sp];
+                                    string numericColor = value == 0 ? "707070" : "20B2AA";
+                                    string registerColor = "62B8E9";
+
+                                    if ((_hoverCol == 0 || _hoverCol == 1) && row == _hoverRow) {
+                                        numericColor = "ff66cc";
+                                        registerColor = "ff66cc";
+                                    }
+
+                                    stackString = String.Format("<color=#{4}>{0,6}</color> (<color=#62B8E9>{3,3}</color>)=<color=#{2}>{1,19}</color>", addr, $"{value:0.#################}", numericColor, $"{_sp:D}", registerColor);
+                                    _markers.Add(new StackMarker(row, 0, _sp, value));
+                                    _markers.Add(new StackMarker(row, 1, _sp, value));
+                                } else {
+                                    stackString = $"{String.Empty,32}";
                                 }
-                                string stackString = String.Format("<color=#{4}>{0,6}</color> (<color=#62B8E9>{3,3}</color>)=<color=#{2}>{1,19}</color>", addr, $"{value:0.#################}", numericColor, $"{i:D}", registerColor);
+
                                 string codeLine;
                                 string pp = "";
                                 if (_codeLines.Length > 0 && codeIndex < _codeLines.Length) {
@@ -1077,17 +1103,15 @@ namespace ridorana.IC10Inspector.Objects.Items {
                                         pp = codeLine.Substring(0, p);
                                         codeLine = codeLine.Substring(Math.Min(p + 2, codeLine.Length));
                                     }
+                                    var acceptedStrings = new List<string>();
+                                    var acceptedJumps = new List<string>();
+                                    codeLine = codeLine.Substring(0, Math.Min(96, codeLine.Length));
+                                    codeLine = String.Format("<color=#62B8E9>{1}</color>{2}<color=#ff9933>{0}</color>", Localization.ParseScript(Regex.Replace(codeLine, "([<>])", "<noparse>$1</noparse>"), ref acceptedStrings, ref acceptedJumps), pp, codeLine.Length == 0 ? "" : ": ");
                                 } else {
                                     codeLine = "";
                                 }
-                                var acceptedStrings = new List<string>();
-                                var acceptedJumps = new List<string>();
-
-                                codeLine = codeLine.Substring(0, Math.Min(50, codeLine.Length));
-
-                                stringBuilder.AppendFormat("{0,-35}      <color=#62B8E9>{2}</color>{3}<color=#ff9933>{1,-50}</color>\n", stackString, Localization.ParseScript(Regex.Replace(codeLine, "([<>])", "<noparse>$1</noparse>"), ref acceptedStrings, ref acceptedJumps), pp, codeLine.Length == 0?"":": ");
-                                _markers.Add(new StackMarker(row, 0, i, value));
-                                _markers.Add(new StackMarker(row, 1, i, value));
+                                
+                                stringBuilder.AppendFormat("{0}      {1}\n", stackString, codeLine);
                                 row++;
                             }
 
@@ -1119,25 +1143,32 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             if ((status & CPUStatus.CompileError) != 0) {
                                 stringBuilder.Append("Compilation error");
                                 stringBuilder.Append(": ");
-                                stringBuilder.AppendFormat("<color=#76b354>{0}</color>", programmableChip.CompilationError.ToString());
+                                stringBuilder.AppendFormat("<color=#ff6666>{0}</color>", programmableChip.CompilationError.ToString());
                             }else{
-                                bool paused = (status & CPUStatus.Paused) != 0;
-                                bool slow = (status & CPUStatus.Slow) != 0;
-                                bool step = (status & CPUStatus.Stepping) != 0;
-                                if (slow) {
-                                    stringBuilder.Append("<color=#a9a33f>Slow Rate</color> ");
-                                }
-                                if (paused) {
-                                    stringBuilder.Append("<color=#b4820b>Paused</color> ");
+                                var errorCode = programmableChip.GetErrorCode();
+                                if (!String.IsNullOrEmpty(errorCode)) {
+                                    stringBuilder.Append($"RuntimeError: <color=#ff6666>{errorCode}</color> ");
+                                } else {
+                                    bool paused = (status & CPUStatus.Paused) != 0;
+                                    bool slow = (status & CPUStatus.Slow) != 0;
+                                    bool step = (status & CPUStatus.Stepping) != 0;
+                                    if (slow) {
+                                        stringBuilder.Append("<color=#a9a33f>Slow Rate</color> ");
+                                    }
+
+                                    if (paused) {
+                                        stringBuilder.Append("<color=#b4820b>Paused</color> ");
+                                    }
+
+                                    if (step) {
+                                        stringBuilder.Append("<color=#63b138>Stepping...</color> ");
+                                    }
+
+                                    if (!paused) {
+                                        stringBuilder.Append("<color=#76b354>Running</color> ");
+                                    }
                                 }
 
-                                if (step) {
-                                    stringBuilder.Append("<color=#63b138>Stepping...</color> ");
-                                } 
-                                
-                                if(!paused){
-                                    stringBuilder.Append("<color=#76b354>Running</color> ");
-                                }
                             }
 
                             _statusText = stringBuilder.ToString();
