@@ -10,6 +10,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Color = UnityEngine.Color;
+using Image = UnityEngine.UI.Image;
 
 namespace ridorana.IC10Inspector.Utilities {
     public class PrefabUtils {
