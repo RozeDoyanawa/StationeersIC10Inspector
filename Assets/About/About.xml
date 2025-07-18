@@ -2,7 +2,7 @@
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Name>IC10 Inspector/Debugger [StationeersLaunchPad]</Name>
   <Author>Roze</Author>
-  <Version>0.2</Version>
+  <Version>0.3</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]IC10 Inspector/Debugger[/h1]
     [b]WARNING:[/b] This is a StationeersLaunchPad Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.
@@ -13,6 +13,10 @@
     
     Tested to work in singleplayer. Untested in P2P multiplayer and dedicated servers due to update to beta.
 
+    v0.3
+    * If you have subscribed and enabled [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3528329094&searchtext=ic10+extender]IC10 Extender mod[/url], you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
+    
+    
     Please report any bugs in the appropriate discord channels:
     #Modding @ [url=https://discord.com/invite/stationeers]Official Stationeers discord[/url].
     [url=https://discord.gg/3DBbPSUG95]#Projects[/url]->[url=https://discord.com/channels/1370137389837717545/1388885375035899934]IC10 Debugger[/url] @ [url=https://discord.gg/5qZbPVTw2U]Stationeers Modding Discord server[/url]
@@ -27,7 +31,12 @@
 Adds an inspector and debugger for IC10 chips. Readout includes current values for registers and stack. Updated every tick.
 The debugger can frame-step IC10 programs and also shows current code-line and the fiew surrounding it. 
 The Debug state is not saved on world save, any paused/slowed chips will run at full speed on loading a save. So, if you have code that you are unsure of will cause mayhem if "started", stop the housing properly before saving. 
+
 Tested to work in singleplayer. Untested in P2P multiplayer and dedicated servers due to update to beta.
+
+v0.3
+* If you have subscribed and enabled IC10 Extender mod, you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
+
 
 Please report any bugs in the appropriate discord channels:
  #Modding @ Official Stationeers discord. 
@@ -38,11 +47,10 @@ Please report any bugs in the appropriate discord channels:
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
-    [h3]Version 0.2:[/h3]
+    [h3]Version 0.3:[/h3]
     [list]
-    [*]Added Debugger Motherboard
-    [*]New version depends on the LaunchPadBooster in the latest LaunchPad Version.
-    [*]Fixed some issues, including issue with the wrong device showing up when hovering devices.
+    [*]Added soft dependency on IC10 Extender mod.
+    [*]With above soft dependency, new break instruction is added
     [/list]
   </ChangeLog>
   <!-- StationeersMods and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
