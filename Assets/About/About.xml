@@ -14,7 +14,7 @@
     Tested to work in singleplayer. Untested in P2P multiplayer and dedicated servers due to update to beta.
 
     v0.3
-    * If you have subscribed and enabled [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3528329094&searchtext=ic10+extender]IC10 Extender mod[/url], you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
+    * If you have subscribed and enabled [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3528329094&amp;searchtext=ic10+extender]IC10 Extender mod[/url], you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
     
     
     Please report any bugs in the appropriate discord channels:
