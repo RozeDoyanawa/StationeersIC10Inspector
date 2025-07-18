@@ -76,6 +76,7 @@ crashlytics-build.properties
 /Assets/Assemblies/*
 /Assets/StationeersMods/
 /Assets/TextMesh Pro/
+/Packages/*
 /ModOutput/
 /CopyMod.bat
 /obj/
