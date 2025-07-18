@@ -53,9 +53,11 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 return !step && !pause && !slowMode;
             }
         }
+        
+        
 
         [HarmonyPatch(typeof(ProgrammableChip), "Execute", typeof(int))]
-        public static class PatchProgrammableChip {
+        public static class PatchProgrammableChipExecute {
             
             [UsedImplicitly]
             static bool Prefix(ProgrammableChip __instance, ref int runCount) {
@@ -1106,7 +1108,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
                                     var acceptedStrings = new List<string>();
                                     var acceptedJumps = new List<string>();
                                     codeLine = codeLine.Substring(0, Math.Min(96, codeLine.Length));
-                                    codeLine = String.Format("<color=#62B8E9>{1}</color>{2}<color=#ff9933>{0}</color>", Localization.ParseScript(Regex.Replace(codeLine, "([<>])", "<noparse>$1</noparse>"), ref acceptedStrings, ref acceptedJumps), pp, codeLine.Length == 0 ? "" : ": ");
+                                    codeLine = String.Format("<color=#{3}>{1}</color>{2}<color=#ff9933>{0}</color>", Localization.ParseScript(Regex.Replace(codeLine, "([<>])", "<noparse>$1</noparse>"), ref acceptedStrings, ref acceptedJumps), pp, codeLine.Length == 0 ? "" : ": ", pp.Equals("pc+0")?"33cc33":"62B8E9");
                                 } else {
                                     codeLine = "";
                                 }
@@ -1143,7 +1145,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             if ((status & CPUStatus.CompileError) != 0) {
                                 stringBuilder.Append("Compilation error");
                                 stringBuilder.Append(": ");
-                                stringBuilder.AppendFormat("<color=#ff6666>{0}</color>", programmableChip.CompilationError.ToString());
+                                stringBuilder.AppendFormat("<color=#ff6666>{0}</color>", programmableChip.GetErrorCode());
                             }else{
                                 var errorCode = programmableChip.GetErrorCode();
                                 if (!String.IsNullOrEmpty(errorCode)) {
