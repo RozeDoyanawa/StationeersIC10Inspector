@@ -55,7 +55,11 @@ Please report any bugs in the appropriate discord channels:
   <!-- Automatic downloads of dependencies -->
   <Dependencies />
   <!-- Automatic reordering of the mods list -->
-  <LoadBefore />
+  <LoadBefore>
+    <Mod>
+      <Id>3528329094</Id>
+    </Mod>
+  </LoadBefore>
   <LoadAfter />
   <WorkshopHandle>3508602436</WorkshopHandle>
 </ModMetadata>

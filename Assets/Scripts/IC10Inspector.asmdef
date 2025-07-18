@@ -21,7 +21,8 @@
         "BepInEx.dll",
         "UniTask.dll",
         "RG.ImGui.dll",
-        "LaunchPadBooster.dll"
+        "LaunchPadBooster.dll",
+        "IC10Extender.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
