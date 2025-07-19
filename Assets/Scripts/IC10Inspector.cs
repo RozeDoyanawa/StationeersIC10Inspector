@@ -27,26 +27,24 @@ namespace ridorana.IC10Inspector {
             PrefabPatch.prefabs = contentHandler.prefabs;
             harmony.PatchAll();
             
-            //NetworkPatches.PushMessage(typeof(DebugMotherboard.SetIC10ValueMessage));
             MOD.RegisterNetworkMessage<DebugMotherboard.SetIC10ValueMessage>();
 
             Debug.Log("IC10Inspector Loaded");
         }
 
         private void Awake() {
-            if (IC10E_Compat.Enabled)
+            if (IC10ExpansionCompatibility.Enabled)
             {
-                IC10E_Compat.Init();
+                IC10ExpansionCompatibility.Init();
             }
         }
     }
 
-    public static class IC10E_Compat {
+    public static class IC10ExpansionCompatibility {
 
         private static bool? _enabled;
 
         public static bool Enabled {
-            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
             get {
                 if (_enabled == null) {
                     Assembly[] assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
@@ -72,9 +70,7 @@ namespace ridorana.IC10Inspector {
         }
 
         private class Break : ExtendedOpCode {
-            //implementation that extends my abstract class
             private class Instance : Operation {
-                //private ChipWrapper wrapper;
                 public Instance(ChipWrapper chip, int lineNumber) : base(chip, lineNumber) {
 
                 }
