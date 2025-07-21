@@ -17,7 +17,7 @@ namespace ridorana.IC10Inspector {
     [BepInDependency("net.lawofsynergy.stationeers.ic10e", BepInDependency.DependencyFlags.SoftDependency)]
     public class IC10Inspector : ModBehaviour {
         
-        public static readonly Mod MOD = new("IC10Inspector", "0.1");
+        public static readonly Mod MOD = new("IC10Inspector", "0.3");
         
         public override void OnLoaded(ContentHandler contentHandler) {
             Debug.Log("IC10Inspector says: Hello World!");
@@ -25,7 +25,11 @@ namespace ridorana.IC10Inspector {
 
             Harmony harmony = new Harmony("IC10Inspector");
             PrefabPatch.prefabs = contentHandler.prefabs;
-            harmony.PatchAll();
+        	harmony.CreateClassProcessor(typeof(PrefabPatch), true).Patch();
+        	harmony.CreateClassProcessor(typeof(DebugMotherboard.PatchProgrammableChipExecute), true).Patch();
+        	harmony.CreateClassProcessor(typeof(SaveDataPatch.Patch_XmlSaveLoad), true).Patch();
+        	harmony.CreateClassProcessor(typeof(TickManager.CartridgeManagerPatch), true).Patch();
+            //harmony.PatchAll();
             
             MOD.RegisterNetworkMessage<DebugMotherboard.SetIC10ValueMessage>();
 
@@ -45,18 +49,22 @@ namespace ridorana.IC10Inspector {
         private static bool? _enabled;
 
         public static bool Enabled {
+            [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
             get {
                 if (_enabled == null) {
+                    Debug.Log("Looking for IC10Extender in loaded assemblies: ");
                     Assembly[] assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
                     bool found = false;
                     foreach (var assembly in assemblies) {
                         string message = assembly.GetName().Name;
+                        Debug.Log($"    Assembly {message}");
                         if (message.Equals("IC10Extender")) {
                             found = true;
                             break;
                         }
                     }
 
+                    Debug.Log($"Setting IC10Extender to {found}");
                     _enabled = found;
                 }
 
