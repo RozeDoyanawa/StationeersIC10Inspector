@@ -2,7 +2,7 @@
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Name>IC10 Inspector/Debugger [StationeersLaunchPad]</Name>
   <Author>Roze</Author>
-  <Version>0.3</Version>
+  <Version>0.3.2</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]IC10 Inspector/Debugger[/h1]
     [b]WARNING:[/b] This is a StationeersLaunchPad Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.
@@ -14,7 +14,7 @@
     Tested to work in singleplayer. Untested in P2P multiplayer and dedicated servers due to update to beta.
 
     v0.3
-    * If you have subscribed and enabled [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3528329094&amp;searchtext=ic10+extender]IC10 Extender mod[/url], you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
+    * If you have subscribed and enabled [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3528329094]IC10Extender mod[/url], you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is. If you decide to add IC10Extender, [b]Make sure it loads BEFORE mine[/b]
     
     
     Please report any bugs in the appropriate discord channels:
@@ -35,7 +35,7 @@ The Debug state is not saved on world save, any paused/slowed chips will run at 
 Tested to work in singleplayer. Untested in P2P multiplayer and dedicated servers due to update to beta.
 
 v0.3
-* If you have subscribed and enabled IC10 Extender mod, you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
+* If you have subscribed and enabled IC10Extender mod, you can now use the newly added break command to halt the processor at a given line. Unfortunately this requires a precious code line, but it is what it is.
 
 
 Please report any bugs in the appropriate discord channels:
@@ -47,10 +47,9 @@ Please report any bugs in the appropriate discord channels:
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
-    [h3]Version 0.3:[/h3]
+    [h3]Version 0.3.2:[/h3]
     [list]
-    [*]Added soft dependency on IC10 Extender mod.
-    [*]With above soft dependency, new break instruction is added
+    [*]Changed prefab loading in an attempt to solve the soft loading issue of the IC10Extender mod
     [/list]
   </ChangeLog>
   <!-- StationeersMods and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
