@@ -157,7 +157,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             if (logicType == LOGIC_TYPE) {
                 //ConsoleWindow.Print("Received device id "  + (long)value);
                 if (value > 0) {
-                    _interpretDevice = Find<CircuitHousing>((long)value);
+                    _interpretDevice = Find<Device>((long)value);
                 } else {
                     _interpretDevice = null;
                 }
@@ -181,12 +181,10 @@ namespace ridorana.IC10Inspector.Objects.Items {
             if (_interpretDevice != null) {
                 //ConsoleWindow.Print("CW.P: FetchCPUData()");
                 //Debug.Log("D.L: FetchCPUData()");
-                CircuitHousing housing = _interpretDevice as CircuitHousing;
-                if (housing != null) {
-                    Slot chipSlot = housing.Slots[0];
-                    ProgrammableChip programmableChip = chipSlot.Get<ProgrammableChip>();
-                    if (programmableChip) { 
-                        double[] registers = CopyRegisters(programmableChip);
+                if (_interpretDevice is ICircuitHolder housing) {
+                    ProgrammableChip chip = PrefabUtils.GetChipFromHousing(housing);
+                    if (chip) { 
+                        double[] registers = DebugMotherboard.CopyRegisters(chip);
                         bool changed = false;
                         for (int i = 0; i < registers.Length; i++) {
                             double old = _registerBuffer[i];
@@ -194,9 +192,9 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             changed |= (!old.Equals(registers[i]));
                         }
 
-                        _registerBuffer[LineNumberOffset] = programmableChip.LineNumber;
+                        _registerBuffer[LineNumberOffset] = chip.LineNumber;
                         lock (ChangeList) {
-                            double[] stack = CopyStack(programmableChip);
+                            double[] stack = DebugMotherboard.CopyStack(chip);
                             for (short i = 0; i < stack.Length; i++) {
                                 double o = _stackCheck[i];
                                 _stackBuffer[i] = _stackCheck[i] = stack[i];
@@ -212,20 +210,21 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             NetworkUpdateFlags |= (ushort)NETWORK_UPDATE_ID;
                         }
                     }
+                }else if (_interpretDevice is ILogicStack logicStack) {
+                    lock (ChangeList) {
+                        var stack = DebugMotherboard.CopyStack(logicStack);
+                        for (short i = 0; i < stack.Length; i++) {
+                            var o = _stackCheck[i];
+                            _stackBuffer[i] = _stackCheck[i] = stack[i];
+                            if (o != _stackCheck[i]) {
+                                ChangeList.TryAdd(i, _stackCheck[i]);
+                            }
+                        }
+
+                        if (ChangeList.Count > 0 && NetworkManager.IsServer) NetworkUpdateFlags |= (ushort)NETWORK_UPDATE_ID;
+                    }
                 }
             }
-        }
-
-
-        private double[] CopyRegisters(ProgrammableChip chip) {
-            FieldInfo f = chip.GetType().GetField("_Registers", BindingFlags.NonPublic | BindingFlags.Instance);
-            var retVal = (double[])f.GetValue(chip);
-            return retVal;
-        }
-        private double[] CopyStack(ProgrammableChip chip) {
-            FieldInfo f = chip.GetType().GetField("_Stack", BindingFlags.NonPublic | BindingFlags.Instance);
-            var retVal = (double[])f.GetValue(chip);
-            return retVal;
         }
 
         private void ReadProcessorState() {
@@ -237,12 +236,10 @@ namespace ridorana.IC10Inspector.Objects.Items {
                     }
                     _lastScannedDevice = _scannedDevice;
                     _selectedText = _scannedDevice.DisplayName.ToUpper();
-                    CircuitHousing housing = _scannedDevice as CircuitHousing;
-                    if (housing != null) {
-                        Slot chipSlot = housing.Slots[0];
-                        ProgrammableChip programmableChip = chipSlot.Get<ProgrammableChip>();
+                    StringBuilder stringBuilder = new StringBuilder();
+                    if (_scannedDevice is ICircuitHolder housing) {
+                        ProgrammableChip programmableChip = PrefabUtils.GetChipFromHousing(housing);
                         if (programmableChip) {
-                            StringBuilder stringBuilder = new StringBuilder();
                             if (programmableChip.CompilationError) {
                                 stringBuilder.Append("Compilation error");
                                 stringBuilder.Append(": ");
@@ -251,10 +248,13 @@ namespace ridorana.IC10Inspector.Objects.Items {
                                 stringBuilder.Append("Line number");
                                 stringBuilder.Append(": ");
                                 stringBuilder.AppendFormat("<color=#62B8E9>{0,3:D}</color>   ", (int)_registerBuffer[LineNumberOffset]);
-                                stringBuilder.Append("Setting");
-                                stringBuilder.Append(": ");
-                                stringBuilder.AppendFormat("<color=#{1}>{0,19}</color>", $"{housing.Setting:0.#################}", housing.Setting == 0?"707070":"20B2AA");
-                                stringBuilder.Append("\n");
+                                if (housing is ISetable thing) {
+                                    stringBuilder.Append("Setting");
+                                    stringBuilder.Append(": ");
+                                    stringBuilder.AppendFormat("<color=#{1}>{0,19}</color>", $"{thing.Setting:0.#################}", thing.Setting == 0 ? "707070" : "20B2AA");
+                                    stringBuilder.Append("\n");
+                                }
+
                                 stringBuilder.Append("Registers");
                                 stringBuilder.Append(": \n");
                                 for (int i = 0; i < 18; i++) {
@@ -276,25 +276,33 @@ namespace ridorana.IC10Inspector.Objects.Items {
                                     stringBuilder.AppendFormat("<color=#62B8E9>{0,6}</color> (<color=#62B8E9>{3,3}</color>)=<color=#{2}>{1,19}</color>\n", addr, $"{_stackBuffer[i]:0.#################}", _stackBuffer[i] == 0?"707070":"20B2AA", $"{i:D}");
                                 }
                                 stringBuilder.Append("\n");
-                                for (int i = 0; i < 512; i++) {
-                                    if (i > 0 && i % 2 == 0) {
-                                        stringBuilder.Append("\n");
-                                    }
-                                    stringBuilder.AppendFormat("<color=#62B8E9>{0,3}</color>=<color=#{2}>{1,19}</color>  ", $"{i:D}", $"{_stackBuffer[i]:0.#################}", _stackBuffer[i] == 0?"707070":"20B2AA");
-
-                                }
+                                BuildStackDisplay(stringBuilder, 512);
                             }
                             stringBuilder.Append("\n");
 
                             _outputText = stringBuilder.ToString();
                             return;
                         }
+                    }else if (_scannedDevice is ILogicStack stack) {
+                        BuildStackDisplay(stringBuilder, stack.GetStackSize());
+                        _outputText = stringBuilder.ToString();
+                        return;
                     }
                 }
                 _selectedText = NotApplicableString;
                 _outputText = string.Empty;                        
             }
             
+        }
+
+        private void BuildStackDisplay(StringBuilder stringBuilder, int stackSize) {
+            for (int i = 0; i < stackSize; i++) {
+                if (i > 0 && i % 2 == 0) {
+                    stringBuilder.Append("\n");
+                }
+                stringBuilder.AppendFormat("<color=#62B8E9>{0,3}</color>=<color=#{2}>{1,19}</color>  ", $"{i:D}", $"{_stackBuffer[i]:0.#################}", _stackBuffer[i] == 0?"707070":"20B2AA");
+
+            }
         }
 
         public override void OnScreenUpdate() {

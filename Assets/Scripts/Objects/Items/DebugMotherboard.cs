@@ -537,7 +537,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             switch (logicType) {
                 case SETDEVICE_LOGIC_TYPE: {
                     if (value > 0) {
-                        _interpretDevice = Find<CircuitHousing>((long)value);
+                        _interpretDevice = Find<Device>((long)value);
                     } else {
                         _interpretDevice = null;
                     }
@@ -933,13 +933,22 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             }
 
                             changed |= ChangeList.Count > 0;
-                            
-                            //if (ChangeList.Count > 0) {
-                            //    Console.Write("Scheduled " + ChangeList.Count + " changes to send to clients");
-                            //}
                         }
 
                         if (changed && NetworkManager.IsServer) NetworkUpdateFlags |= (ushort)NETWORK_UPDATE_ID;
+                    }
+                }else if (_interpretDevice is ILogicStack logicStack) {
+                    lock (ChangeList) {
+                        var stack = CopyStack(logicStack);
+                        for (short i = 0; i < stack.Length; i++) {
+                            var o = _stackCheck[i];
+                            _stackBuffer[i] = _stackCheck[i] = stack[i];
+                            if (o != _stackCheck[i]) {
+                                ChangeList.TryAdd(i, _stackCheck[i]);
+                            }
+                        }
+
+                        if (ChangeList.Count > 0 && NetworkManager.IsServer) NetworkUpdateFlags |= (ushort)NETWORK_UPDATE_ID;
                     }
                 }
             }
@@ -996,16 +1005,25 @@ namespace ridorana.IC10Inspector.Objects.Items {
         }
 
 
-        private double[] CopyRegisters(ProgrammableChip chip) {
+        public static double[] CopyRegisters(ProgrammableChip chip) {
             var f = chip.GetType().GetField("_Registers", BindingFlags.NonPublic | BindingFlags.Instance);
             var retVal = (double[])f.GetValue(chip);
             return retVal;
         }
 
-        private double[] CopyStack(ProgrammableChip chip) {
+        public static double[] CopyStack(ProgrammableChip chip) {
             var f = chip.GetType().GetField("_Stack", BindingFlags.NonPublic | BindingFlags.Instance);
             var retVal = (double[])f.GetValue(chip);
             return retVal;
+        }
+
+        public static double[] CopyStack(ILogicStack chip) {
+            var stack = chip.GetLogicStack(); //    chip.GetType().GetField("_Stack", BindingFlags.NonPublic | BindingFlags.Instance);
+            lock (stack) {
+                var f = stack.GetType().GetField("_stack", BindingFlags.NonPublic | BindingFlags.Instance);
+                var retVal = (double[])f.GetValue(stack);
+                return retVal;
+            }
         }
 
         public override void FlashCircuit()
@@ -1026,10 +1044,10 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
                     _lastScannedDevice = _scannedDevice;
                     _selectedText = _scannedDevice.DisplayName.ToUpper();
+                    var stringBuilder = new StringBuilder();
                     if (_scannedDevice is ICircuitHolder housing) {
                         ProgrammableChip programmableChip = PrefabUtils.GetChipFromHousing(housing);
                         if (programmableChip) {
-                            var stringBuilder = new StringBuilder();
                             int row = 0;
                             stringBuilder.Append("Line number");
                             stringBuilder.Append(": ");
@@ -1118,66 +1136,50 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             }
 
                             stringBuilder.Append("\n");
-                            row++;
-                            for (var i = 0; i < StackBufferCount; i++) {
-                                if (i > 0 && i % ColumnCount == 0) {
-                                    stringBuilder.Append("\n");
-                                    row++;
-                                }
-                                string numericColor = _stackBuffer[i] == 0 ? "707070" : "20B2AA";
-                                string registerColor = "62B8E9";
-                                if (i % ColumnCount == _hoverCol && row == _hoverRow) {
-                                    numericColor = "ff66cc";
-                                    registerColor = "ff66cc";
-                                }
-                                
-                                stringBuilder.AppendFormat(String.Format("<color=#{3}>{0,3}</color>=<color=#{2}>{1,19}</color>  ", $"{i:D}", $"{_stackBuffer[i]:0.#################}", numericColor, registerColor));
-                                _markers.Add(new StackMarker(row, i % ColumnCount, i, _stackBuffer[i]));
-                            }
-
-                            stringBuilder.Append("\n");
+                            row = BuildStackDisplay(row, stringBuilder, StackBufferCount);
                             row++;
                             _rowCount = row;
                             _outputText = stringBuilder.ToString();
 
-                            stringBuilder = new StringBuilder();
+                            StringBuilder statusBuilder = new StringBuilder();
                             CPUStatus status = (CPUStatus)_registerBuffer[CPUStatusOffset];
                             if ((status & CPUStatus.CompileError) != 0) {
-                                stringBuilder.Append("Compilation error");
-                                stringBuilder.Append(": ");
-                                stringBuilder.AppendFormat("<color=#ff6666>{0}</color>", programmableChip.GetErrorCode());
+                                statusBuilder.Append("Compilation error");
+                                statusBuilder.Append(": ");
+                                statusBuilder.AppendFormat("<color=#ff6666>{0}</color>", programmableChip.GetErrorCode());
                             }else{
                                 var errorCode = programmableChip.GetErrorCode();
                                 if (!String.IsNullOrEmpty(errorCode)) {
-                                    stringBuilder.Append($"RuntimeError: <color=#ff6666>{errorCode}</color> ");
+                                    statusBuilder.Append($"RuntimeError: <color=#ff6666>{errorCode}</color> ");
                                 } else {
                                     bool paused = (status & CPUStatus.Paused) != 0;
                                     bool slow = (status & CPUStatus.Slow) != 0;
                                     bool step = (status & CPUStatus.Stepping) != 0;
                                     if (slow) {
-                                        stringBuilder.Append("<color=#a9a33f>Slow Rate</color> ");
+                                        statusBuilder.Append("<color=#a9a33f>Slow Rate</color> ");
                                     }
 
                                     if (paused) {
-                                        stringBuilder.Append("<color=#b4820b>Paused</color> ");
+                                        statusBuilder.Append("<color=#b4820b>Paused</color> ");
                                     }
 
                                     if (step) {
-                                        stringBuilder.Append("<color=#63b138>Stepping...</color> ");
+                                        statusBuilder.Append("<color=#63b138>Stepping...</color> ");
                                     }
 
                                     if (!paused) {
-                                        stringBuilder.Append("<color=#76b354>Running</color> ");
+                                        statusBuilder.Append("<color=#76b354>Running</color> ");
                                     }
                                 }
-
                             }
-
-                            _statusText = stringBuilder.ToString();
-
-                            return;
+                            _statusText = statusBuilder.ToString();
                         }
+                    }else if (_scannedDevice is ILogicStack stack) {
+                        int row = BuildStackDisplay(0, stringBuilder, stack.GetStackSize());
+                        _rowCount = row;
+                        _outputText = stringBuilder.ToString();
                     }
+                    return;
                 }
 
                 _selectedText = NotApplicableString;
@@ -1185,7 +1187,29 @@ namespace ridorana.IC10Inspector.Objects.Items {
             }
         }
 
-        
+        private int BuildStackDisplay(int row, StringBuilder stringBuilder, int stackBufferCount) {
+            row++;
+            for (var i = 0; i < stackBufferCount; i++) {
+                if (i > 0 && i % ColumnCount == 0) {
+                    stringBuilder.Append("\n");
+                    row++;
+                }
+                string numericColor = _stackBuffer[i] == 0 ? "707070" : "20B2AA";
+                string registerColor = "62B8E9";
+                if (i % ColumnCount == _hoverCol && row == _hoverRow) {
+                    numericColor = "ff66cc";
+                    registerColor = "ff66cc";
+                }
+                                
+                stringBuilder.AppendFormat(String.Format("<color=#{3}>{0,3}</color>=<color=#{2}>{1,19}</color>  ", $"{i:D}", $"{_stackBuffer[i]:0.#################}", numericColor, registerColor));
+                _markers.Add(new StackMarker(row, i % ColumnCount, i, _stackBuffer[i]));
+            }
+
+            stringBuilder.Append("\n");
+            return row;
+        }
+
+
         public override void Awake()
         {
             base.Awake();
