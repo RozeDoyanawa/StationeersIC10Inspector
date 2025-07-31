@@ -53,7 +53,46 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 return !step && !pause && !slowMode;
             }
         }
-        
+
+        [HarmonyPatch]
+        public static class PatchProgrammableChipSaveData {
+            private const string DebugStateInteractableName = "[IC10DebuggeR_DebugState]";
+
+            [UsedImplicitly]
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ProgrammableChip), nameof(ProgrammableChip.SerializeSave))]
+            public static void PostfixProgrammableChipSerializeSave(ref ProgrammableChip __instance, ref ThingSaveData __result) {
+                if (__result is ProgrammableChipSaveData data) {
+                    if (ChipDebugManager.HasDebugState(__instance)) {
+                        int state = 0;
+                        state|= (ChipDebugManager.IsPaused(__instance)?1:0) << 0;
+                        state|= (ChipDebugManager.IsRunningOnReducedSpeed(__instance)?1:0) << 1;
+                        state|= (ChipDebugManager.IsWaitingStep(__instance)?1:0) << 2;
+                        var interactableState = new InteractableState();
+                        interactableState.StateName = DebugStateInteractableName;
+                        interactableState.State = state;
+                        data.States.Add(interactableState);
+                    }
+                }
+            }
+            
+            [UsedImplicitly]
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ProgrammableChip), nameof(ProgrammableChip.DeserializeSave), typeof(ThingSaveData))]
+            public static void PostfixProgrammableChipDeSerializeSave(ref ProgrammableChip __instance, ref ThingSaveData savedData) {
+                if (savedData is ProgrammableChipSaveData data) {
+                    foreach (var stateData in data.States) {
+                        if (stateData.StateName.Equals(DebugStateInteractableName)) {
+                            int state = stateData.State;
+                            ChipDebugManager.SetPaused(__instance, ((state >> 0) & 1) > 0);
+                            ChipDebugManager.SetSlow(__instance, ((state >> 1) & 1) > 0);
+                            ChipDebugManager.SetStep(__instance, ((state >> 2) & 1) > 0);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
         
 
         [HarmonyPatch(typeof(ProgrammableChip), "Execute", typeof(int))]
@@ -162,6 +201,10 @@ namespace ridorana.IC10Inspector.Objects.Items {
                     return false;
                 }
                 return _debugDatas[chip.ReferenceId].slowMode;
+            }
+
+            public static bool HasDebugState(ProgrammableChip chip) {
+                return _debugDatas.ContainsKey(chip.ReferenceId);
             }
         }
         
@@ -896,6 +939,9 @@ namespace ridorana.IC10Inspector.Objects.Items {
         private readonly string[] _codeLines = Enumerable.Repeat(String.Empty, CodeLinesTotal).ToArray(); //new string[CodeLinesBefore + CodeLinesAhead];
 
         private void FetchCPUData() {
+            var compThing = ParentComputer as Thing;
+            if (GameManager.IsBatchMode || ParentComputer == null || !compThing.OnOff || !compThing.Powered)
+                return;
             if (_interpretDevice != null) {
                 //ConsoleWindow.Print("CW.P: FetchCPUData()");
                 //Debug.Log("D.L: FetchCPUData()");
@@ -1036,6 +1082,9 @@ namespace ridorana.IC10Inspector.Objects.Items {
         }
         
         private void ReadProcessorState() {
+            var compThing = ParentComputer as Thing;
+            if (GameManager.IsBatchMode || ParentComputer == null || !compThing.OnOff || !compThing.Powered)
+                return;
             _scannedDevice = GetSelectedDevice(SelectedDeviceIndex);
             lock (_outputText) lock(_statusText) lock(_markers) {
                 if (_scannedDevice != null) {
