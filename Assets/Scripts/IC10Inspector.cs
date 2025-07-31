@@ -25,10 +25,11 @@ namespace ridorana.IC10Inspector {
 
             Harmony harmony = new Harmony("IC10Inspector");
             PrefabPatch.prefabs = contentHandler.prefabs;
-        	harmony.CreateClassProcessor(typeof(PrefabPatch), true).Patch();
-        	harmony.CreateClassProcessor(typeof(DebugMotherboard.PatchProgrammableChipExecute), true).Patch();
-        	harmony.CreateClassProcessor(typeof(SaveDataPatch.Patch_XmlSaveLoad), true).Patch();
-        	harmony.CreateClassProcessor(typeof(TickManager.CartridgeManagerPatch), true).Patch();
+        	harmony.CreateClassProcessor(typeof(PrefabPatch)).Patch();
+        	harmony.CreateClassProcessor(typeof(DebugMotherboard.PatchProgrammableChipExecute)).Patch();
+        	harmony.CreateClassProcessor(typeof(DebugMotherboard.PatchProgrammableChipSaveData)).Patch();
+        	harmony.CreateClassProcessor(typeof(SaveDataPatch.Patch_XmlSaveLoad)).Patch();
+        	harmony.CreateClassProcessor(typeof(TickManager.CartridgeManagerPatch)).Patch();
             //harmony.PatchAll();
             
             MOD.RegisterNetworkMessage<DebugMotherboard.SetIC10ValueMessage>();
@@ -85,7 +86,7 @@ namespace ridorana.IC10Inspector {
 
                 public override int Execute(int index) {
                     DebugMotherboard.ChipDebugManager.SetPaused(Chip.chip, true);
-                    return index + 1;
+                    return -index - 1;
                 }
             }
 
@@ -101,8 +102,12 @@ namespace ridorana.IC10Inspector {
                 return new Instance(chip, lineNumber);
             }
 
-            public override HelpString[] Params(int currentArgCount) {
+            public override HelpString[] Params() {
                 return Array.Empty<HelpString>();
+            }
+
+            public override string Description() {
+                return "Pauses the execution of the processor before executing the next line of code, you will have to manually resume the processor from the IC10 Debugger screen, or the chip will forever be in pause mode.";
             }
         }
 
