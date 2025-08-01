@@ -277,26 +277,26 @@ namespace ridorana.IC10Inspector.Objects.Items {
         private const int ReturnAddressOffset = 17;
         private const int ColumnCount = 5;
         
-        private const string DropdownLabelPath = "PanelNormal/AccessibleProgammableChipList/Label";
-        private const string DropdownTemplateLabelPath = "PanelNormal/AccessibleProgammableChipList/Template/DropdownViewport/DropdownContent/Item/Item Label";
-        private const string DropdownPath = "PanelNormal/AccessibleProgammableChipList";
-        private const string DropdownTemplateItemPath = "PanelNormal/AccessibleProgammableChipList/Template/DropdownViewport/DropdownContent/Item";
-        private const string DropdownTemplateScrolbarPath = "PanelNormal/AccessibleProgammableChipList/Template/DropdownScrollbar";
-        private const string PauseButtonPath = "PanelNormal/PauseButton";
-        private const string SlowmodeButtonPath = "PanelNormal/SlowModeButton";
-        private const string StepButtonPath = "PanelNormal/StepButton";
-        private const string TitlePath = "PanelNormal/ScreenTitle";
-        private const string DropdownArrowPath = "PanelNormal/AccessibleProgammableChipList/Arrow";
-        private const string DropdownTemplateItemBackgroundPath = "PanelNormal/AccessibleProgammableChipList/Template/DropdownViewport/DropdownContent/Item/Item Background";
-        private const string DropdownTemplateItemCheckmarkPath = "PanelNormal/AccessibleProgammableChipList/Template/DropdownViewport/DropdownContent/Item/Item Checkmark";
-        private const string DropdownTemplateScrollbarHandlePath = "PanelNormal/AccessibleProgammableChipList/Template/DropdownScrollbar/Sliding Area/DropdownScrollHandle";
-        private const string MainTextFieldPath = "PanelNormal/ScrollPanel/Viewport/Content/ContentText";
-        private const string StatusTextPath = "PanelNormal/StatusText";
+        private const string PanelNormalPath = "PanelNormal";
+        private const string PauseButtonPath = PanelNormalPath + "/PauseButton";
+        private const string SlowmodeButtonPath = PanelNormalPath + "/SlowModeButton";
+        private const string StepButtonPath = PanelNormalPath + "/StepButton";
+        private const string DropdownPath = PanelNormalPath + "/ButtonDropdown";
+        private const string DropdownButtonPath = DropdownPath + "/ExpandButton";
+        private const string DropdownArrowPath = DropdownButtonPath + "/Arrow";
+        private const string DropdownLabelPath = DropdownButtonPath + "/Text";
+        private const string MainPanelPath = DropdownPath + "/MainPanel";
+        private const string MainPanelScrollingPanelPath = MainPanelPath + "/ScrollingPanel";
+        private const string MainPanelScrollBarPath = MainPanelScrollingPanelPath + "/Scrollbar";
+        private const string MainPanelScrollBarHandlePath = MainPanelScrollBarPath + "/Sliding Area/Handle";
+        private const string MainPanelScrollMaskPath = MainPanelScrollingPanelPath + "/ScrollRect/Mask";
+        private const string MainPanelScrollContentPath = MainPanelScrollMaskPath + "/Content";
+        private const string TitlePath = PanelNormalPath + "/ScreenTitle";
+        private const string MainTextFieldPath = PanelNormalPath + "/ScrollPanel/Viewport/Content/ContentText";
+        private const string StatusTextPath = PanelNormalPath + "/StatusText";
 
         private static readonly string NotApplicableString = "N/A";
         [FormerlySerializedAs("_displayTextMesh")] [SerializeField] private TextMeshProUGUI txtDataText;
-        
-        private Canvas _templateCanvas;
         
         private readonly List<ICircuitHolder> _circuitHolders = new List<ICircuitHolder>();
         //public Text SelectedTitle;
@@ -318,16 +318,14 @@ namespace ridorana.IC10Inspector.Objects.Items {
         private string _outputText = string.Empty;
         private string _statusText = string.Empty;
         private Device _scannedDevice;
+        [Header("IC10 Debugger Motherboard")]
         private bool _DevicesChanged;
 
         [FormerlySerializedAs("_scrollPanel")] [SerializeField]
         protected ScrollPanel scpDataScrollpanel;
-        
-        [FormerlySerializedAs("AccessibleProgammableChipList")] [SerializeField]
-        private Dropdown AccessibleProgrammableChipList;
 
-        [FormerlySerializedAs("DropDownTemplate")] [SerializeField]
-        private GameObject cboChipsItemTemplate;
+        [SerializeField]
+        private global::UI.Dropdown.ButtonDropdown _dropdown;
         
         [FormerlySerializedAs("ScreenTitle")] [SerializeField]
         private Text txtScreenTitle;
@@ -442,24 +440,24 @@ namespace ridorana.IC10Inspector.Objects.Items {
             //PrefabUtils.CopyParams(this, existingCartridge, "PanelNormal/Selected", CopyMeshTextFontData);
             //PrefabUtils.CopyParams(this, existingCartridge, "PanelNormal/ActualTitle", CopyTextFontData);
             //PrefabUtils.CopyParams(this, existingCartridge, "PanelNormal/DevicesTitle", CopyTextFontData);
-            PrefabUtils.CopyParams<Text>(this, existingMotherboard, TitlePath, "ProgrammingWindow/ScreenTitle", PrefabUtils.CopyTextFontData);
-            PrefabUtils.CopyParams<Text>(this, existingMotherboard, DropdownLabelPath, "ProgrammingWindow/AccessibleProgammableChipList/Label", PrefabUtils.CopyTextFontData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownArrowPath, "ProgrammingWindow/AccessibleProgammableChipList/Arrow", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownTemplateItemBackgroundPath, "ProgrammingWindow/AccessibleProgammableChipList/Template/Viewport/Content/Item/Item Background", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownTemplateItemCheckmarkPath, "ProgrammingWindow/AccessibleProgammableChipList/Template/Viewport/Content/Item/Item Checkmark", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Text>(this, existingMotherboard, DropdownTemplateLabelPath, "ProgrammingWindow/AccessibleProgammableChipList/Template/Viewport/Content/Item/Item Label", PrefabUtils.CopyTextFontData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownTemplateScrolbarPath, "ProgrammingWindow/AccessibleProgammableChipList/Template/Scrollbar", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownTemplateScrollbarHandlePath, "ProgrammingWindow/AccessibleProgammableChipList/Template/Scrollbar/Sliding Area/Handle", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, StepButtonPath, "ProgrammingWindow/ExportButton", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, SlowmodeButtonPath, "ProgrammingWindow/ExportButton", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, PauseButtonPath, "ProgrammingWindow/ExportButton", PrefabUtils.CopyImageData);
-            PrefabUtils.CopyParams<Button>(this, existingMotherboard, StepButtonPath, "ProgrammingWindow/ExportButton", PrefabUtils.CopyButtonStyleRoze);
-            PrefabUtils.CopyParams<Button>(this, existingMotherboard, SlowmodeButtonPath, "ProgrammingWindow/ExportButton", PrefabUtils.CopyButtonStyleRoze);
-            PrefabUtils.CopyParams<Button>(this, existingMotherboard, PauseButtonPath, "ProgrammingWindow/ExportButton", PrefabUtils.CopyButtonStyleRoze);
-            PrefabUtils.CopyParams<Text>(this, existingMotherboard, StepButtonPath + "/Text", "ProgrammingWindow/ExportButton/Text", PrefabUtils.CopyTextFontData);
-            PrefabUtils.CopyParams<Text>(this, existingMotherboard, SlowmodeButtonPath + "/Text", "ProgrammingWindow/ExportButton/Text", PrefabUtils.CopyTextFontData);
-            PrefabUtils.CopyParams<Text>(this, existingMotherboard, PauseButtonPath + "/Text", "ProgrammingWindow/ExportButton/Text", PrefabUtils.CopyTextFontData);
-            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownArrowPath, "ProgrammingWindow/AccessibleProgammableChipList/Arrow", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Text>(this, existingMotherboard, TitlePath, "ProgrammableChipMotherboardPanel/ScreenTitle", PrefabUtils.CopyTextFontData);
+            PrefabUtils.CopyParams<TextMeshProUGUI>(this, existingMotherboard, DropdownLabelPath, "ProgrammableChipMotherboardPanel/ButtonDropdown/ExpandButton/Text", PrefabUtils.CopyMeshTextFontData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, DropdownArrowPath, "ProgrammableChipMotherboardPanel/ButtonDropdown/ExpandButton/Arrow", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, MainPanelPath, "ProgrammableChipMotherboardPanel/ButtonDropdown/MainPanel", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, MainPanelScrollBarHandlePath, "ProgrammableChipMotherboardPanel/ButtonDropdown/MainPanel/ScrollingPanel/Scrollbar/Sliding Area/Handle", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, MainPanelScrollMaskPath, "ProgrammableChipMotherboardPanel/ButtonDropdown/MainPanel/ScrollingPanel/ScrollRect/Mask", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, MainPanelScrollContentPath, "ProgrammableChipMotherboardPanel/ButtonDropdown/MainPanel/ScrollingPanel/ScrollRect/Mask/Content", PrefabUtils.CopyImageData);
+            
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, StepButtonPath, "ProgrammableChipMotherboardPanel/ExportButton", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, SlowmodeButtonPath, "ProgrammableChipMotherboardPanel/ExportButton", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<Image>(this, existingMotherboard, PauseButtonPath, "ProgrammableChipMotherboardPanel/ExportButton", PrefabUtils.CopyImageData);
+            PrefabUtils.CopyParams<global::UI.Dropdown.ButtonDropdown>(this, existingMotherboard, DropdownPath, "ProgrammableChipMotherboardPanel/ButtonDropdown", PrefabUtils.CopyDropdown);
+            PrefabUtils.CopyParams<Button>(this, existingMotherboard, StepButtonPath, "ProgrammableChipMotherboardPanel/ExportButton", PrefabUtils.CopyButtonStyleRoze);
+            PrefabUtils.CopyParams<Button>(this, existingMotherboard, SlowmodeButtonPath, "ProgrammableChipMotherboardPanel/ExportButton", PrefabUtils.CopyButtonStyleRoze);
+            PrefabUtils.CopyParams<Button>(this, existingMotherboard, PauseButtonPath, "ProgrammableChipMotherboardPanel/ExportButton", PrefabUtils.CopyButtonStyleRoze);
+            PrefabUtils.CopyParams<Text>(this, existingMotherboard, StepButtonPath + "/Text", "ProgrammableChipMotherboardPanel/ExportButton/Text", PrefabUtils.CopyTextFontData);
+            PrefabUtils.CopyParams<Text>(this, existingMotherboard, SlowmodeButtonPath + "/Text", "ProgrammableChipMotherboardPanel/ExportButton/Text", PrefabUtils.CopyTextFontData);
+            PrefabUtils.CopyParams<Text>(this, existingMotherboard, PauseButtonPath + "/Text", "ProgrammableChipMotherboardPanel/ExportButton/Text", PrefabUtils.CopyTextFontData);
             PrefabUtils.CopyParams<TextMeshProUGUI>(this, existingCartridge, MainTextFieldPath, "PanelNormal/ScrollPanel/Viewport/Content/Text", (target, source) => { 
                 PrefabUtils.CopyMeshTextFontData(target, source);
                 target.fontSize = 9;
@@ -477,16 +475,18 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 PrefabUtils.ColorizeUIButtonText(target);
                 target.fontSize-= 4;
             };
+            PrefabUtils.ColorizeCallback<TextMeshProUGUI> textMeshText = target => {
+                PrefabUtils.ColorizeUITextMeshProUGUI(target);
+                target.fontSize-= 4;
+            };
             PrefabUtils.RozeColorize(this, StepButtonPath + "/Text", buttonText);
             PrefabUtils.RozeColorize<Button>(this, SlowmodeButtonPath);
             PrefabUtils.RozeColorize(this, SlowmodeButtonPath + "/Text", buttonText);
             PrefabUtils.RozeColorize<Button>(this, PauseButtonPath);
             PrefabUtils.RozeColorize(this, PauseButtonPath + "/Text", buttonText);
-            PrefabUtils.RozeColorize<Scrollbar>(this, DropdownTemplateScrolbarPath);
-            PrefabUtils.RozeColorize<Toggle>(this, DropdownTemplateItemPath);
-            PrefabUtils.RozeColorize<Dropdown>(this, DropdownPath);
-            PrefabUtils.RozeColorize<Text>(this, DropdownLabelPath, PrefabUtils.ColorizeUIButtonText);
-            PrefabUtils.RozeColorize<Text>(this, DropdownTemplateLabelPath, PrefabUtils.ColorizeUIButtonText);
+            PrefabUtils.RozeColorize<ButtonDropdown>(this, DropdownPath);
+            PrefabUtils.RozeColorize<Button>(this, DropdownButtonPath);
+            PrefabUtils.RozeColorize(this, DropdownLabelPath, textMeshText);
 
         }
         
@@ -657,13 +657,13 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 return;
             }
 
-            SelectedDeviceIndex = AccessibleProgrammableChipList.value;
+            SelectedDeviceIndex = _dropdown.SelectedIndex;
         }
         
         public double Setting { get; set; }
 
         private Device GetSelectedDevice(int value) {
-            if (value >= _circuitHolders.Count) {
+            if (value >= _circuitHolders.Count || value < 0) {
                 return null;
             }
 
@@ -727,6 +727,10 @@ namespace ridorana.IC10Inspector.Objects.Items {
         }
 
         public void OnTickableTick() {
+            if (ParentComputer == null) {
+                return;
+            }
+            SelectedDeviceIndex = _dropdown.SelectedIndex;
             Device scannedDevice = GetSelectedDevice(SelectedDeviceIndex);
             if (GameManager.RunSimulation) {
                 if (scannedDevice != null && _interpretDevice != scannedDevice) {
@@ -830,9 +834,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             {
                 _DevicesChanged = true;
                 HandleDeviceListChange().Forget();
-                StartCoroutine(SetDropdownTemplateLayer());
             }
-            LoadConnected();
         }
 
         public override void OnDeviceListChanged() {
@@ -844,20 +846,16 @@ namespace ridorana.IC10Inspector.Objects.Items {
             }
 
             ResetCursors();
-            LoadConnected();
         }
 
         public override void OnRemovedFromComputer(IComputer computer) {
             base.OnRemovedFromComputer(computer);
-            AccessibleProgrammableChipList.options.Clear();
-            LoadConnected();
-        }
-
-        private void LoadConnected() {
+            _dropdown.Clear();
         }
         
         protected async UniTaskVoid HandleDeviceListChange()
         {
+
             if (!GameManager.IsMainThread)
             {
                 await UniTask.SwitchToMainThread();
@@ -873,29 +871,18 @@ namespace ridorana.IC10Inspector.Objects.Items {
                 return;
             }
             List<ILogicable> list = ParentComputer.DeviceList();
-            list.Sort((a, b) => {
-                if (a == null && b == null) {
-                    return 0;
-                }
-                if(a?.DisplayName == null) {
-                    return 1;
-                }
-                if (b?.DisplayName == null) {
-                    return -1;
-                }
-                return a.DisplayName.CompareTo(b.DisplayName);
-            });
-            AccessibleProgrammableChipList.options.Clear();
+            list.Sort((ILogicable a, ILogicable b) => a.DisplayName.CompareTo(b.DisplayName));
+            _dropdown.Clear();
             _circuitHolders.Clear();
             foreach (ILogicable item2 in list)
             {
                 if (item2 is ICircuitHolder item)
                 {
-                    AccessibleProgrammableChipList.options.Add(new Dropdown.OptionData(item2.DisplayName));
+                    _dropdown.AddItem(item2.DisplayName);
                     _circuitHolders.Add(item);
                 }
             }
-            AccessibleProgrammableChipList.RefreshShownValue();
+            _dropdown.ItemsChanged();
             _DevicesChanged = false;
         }
 
@@ -916,7 +903,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             base.DeserializeSave(baseData);
             if (baseData is not DebugMotherboardSaveData saveData) return;
             
-            SelectedDeviceIndex = AccessibleProgrammableChipList.value = saveData.SelectedHolderIndex;
+            _dropdown.SetSelectedIndex(SelectedDeviceIndex = saveData.SelectedHolderIndex);
             
         }
 
@@ -924,7 +911,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             base.InitialiseSaveData(ref baseData);
             if (baseData is not DebugMotherboardSaveData saveData) return;
             
-            saveData.SelectedHolderIndex = AccessibleProgrammableChipList.value;
+            saveData.SelectedHolderIndex = _dropdown.SelectedIndex;
         }
 
         [Flags]
@@ -1075,8 +1062,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
         public override void FlashCircuit()
         {
             base.FlashCircuit();
-            AccessibleProgrammableChipList.options.Clear();
-            AccessibleProgrammableChipList.RefreshShownValue();
+            _dropdown.Clear();
             _circuitHolders.Clear();
             _DevicesChanged = false;
         }
@@ -1258,37 +1244,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             return row;
         }
 
-
-        public override void Awake()
-        {
-            base.Awake();
-            if ((bool)AccessibleProgrammableChipList)
-            {
-                AccessibleProgrammableChipList.ReplaceRaycasters();
-            }
-            if (_templateCanvas == null)
-            {
-                _templateCanvas = cboChipsItemTemplate.GetComponentInChildren<Canvas>(includeInactive: true);
-            }
-        }
-
-        private IEnumerator SetDropdownTemplateLayer()
-        {
-            yield return Yielders.EndOfFrame;
-            if (_templateCanvas == null)
-            {
-                _templateCanvas = cboChipsItemTemplate.GetComponentInChildren<Canvas>(includeInactive: true);
-            }
-            if (!(_templateCanvas == null))
-            {
-                cboChipsItemTemplate.gameObject.SetActive(value: true);
-                _templateCanvas.enabled = true;
-                _templateCanvas.overrideSorting = true;
-                _templateCanvas.sortingOrder = 1;
-                cboChipsItemTemplate.gameObject.SetActive(value: false);
-            }
-        }
-        
+       
         public override void UpdateEachFrame() {
             if (WorldManager.IsGamePaused)
                 return;

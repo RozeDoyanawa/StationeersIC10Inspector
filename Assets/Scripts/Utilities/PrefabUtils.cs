@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Reflection;
 using Assets.Scripts.Objects;
 using Assets.Scripts.Objects.Electrical;
 using JetBrains.Annotations;
@@ -93,6 +94,19 @@ namespace ridorana.IC10Inspector.Utilities {
             target.sprite = source.sprite;
         }
 
+        public static void CopyDropdown<T>(T target, T source) where T : global::UI.Dropdown.ButtonDropdown {
+            FieldInfo itemPrefabField = source.GetType().GetField("_buttonPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
+            itemPrefabField.SetValue(target, itemPrefabField.GetValue(source));
+            
+            FieldInfo arrowImageField = source.GetType().GetField("_arrowImage", BindingFlags.Instance | BindingFlags.NonPublic);
+            arrowImageField.SetValue(target, arrowImageField.GetValue(source));
+            FieldInfo arrowUpField = source.GetType().GetField("_arrowUp", BindingFlags.Instance | BindingFlags.NonPublic);
+            arrowUpField.SetValue(target, arrowUpField.GetValue(source));
+            FieldInfo arrowDownField = source.GetType().GetField("_arrowDown", BindingFlags.Instance | BindingFlags.NonPublic);
+            arrowDownField.SetValue(target, arrowDownField.GetValue(source));
+            
+        }
+
         public static void CopyButtonStyle<T>(T target, T source) where T : Button {
             target.colors = source.colors;
             target.transition = source.transition;
@@ -123,6 +137,7 @@ namespace ridorana.IC10Inspector.Utilities {
             AddColorizer<Toggle>(ColorizeUIToggle);
             AddColorizer<Scrollbar>(ColorizeUIScrollbar);
             AddColorizer<Dropdown>(ColorizeUIDropdown);
+            AddColorizer<ButtonDropdown>(ColorizeUIButtonDropdown);
         }
 
         public static void ColorizeUIToggle(Toggle target) {
@@ -141,6 +156,10 @@ namespace ridorana.IC10Inspector.Utilities {
             target.colors = RozeColors;
         }
         
+        public static void ColorizeUIButtonDropdown<T>(T target) where T : ButtonDropdown {
+            
+        }
+        
         public static void CopyButtonStyleRoze<T>(T target, T source) where T : Button {
             //ColorBlock sourceColors = source.colors;
             target.colors = source.colors;
@@ -149,6 +168,9 @@ namespace ridorana.IC10Inspector.Utilities {
         }
 
         public static void ColorizeUIButtonText<T>(T target) where T : Text{
+            target.color = Color.white;
+        }
+        public static void ColorizeUITextMeshProUGUI<T>(T target) where T : TextMeshProUGUI{
             target.color = Color.white;
         }
 
