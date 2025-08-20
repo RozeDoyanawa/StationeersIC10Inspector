@@ -719,7 +719,11 @@ namespace ridorana.IC10Inspector.Objects.Items {
                     if (match is RegMarker regMarker) {
                         SetRegister(chip, regMarker.Index, regMarker.Value);
                     } else if (match is StackMarker stackMarker) {
-                        SetStack(chip, stackMarker.Address, stackMarker.Value);
+                        if (KeyManager.GetButton(KeyCode.LeftShift)) {
+                            SetStackHash(chip, stackMarker.Address, stackMarker.Value);
+                        }else{
+                            SetStack(chip, stackMarker.Address, stackMarker.Value);
+                        }
                     }
                 }
                 
@@ -1124,8 +1128,9 @@ namespace ridorana.IC10Inspector.Objects.Items {
                             stringBuilder.Append(": \n");
                             row++;
                             var sp = (int)_registerBuffer[StackPointerOffset];
-                            var start = Math.Min(Math.Max(sp - StackValuesBefore, 0), StackBufferCount);
-                            var end = Math.Min(Math.Max(sp + StackValuesAhead, 0), StackBufferCount);
+							//sp = Math.Min(Math.Max(0, sp), 511);
+                            var start = Math.Min(Math.Max(sp - StackValuesBefore, 0), StackBufferCount - 1);
+                            var end = Math.Min(Math.Max(sp + StackValuesAhead, 0), StackBufferCount - 1);
                             int codeIndex = 0;
                             for (var i = 0; i < 8; i++) {
                                 var _sp = i + start;
@@ -1243,7 +1248,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             stringBuilder.Append("\n");
             return row;
         }
-
+        
        
         public override void UpdateEachFrame() {
             if (WorldManager.IsGamePaused)
@@ -1289,11 +1294,25 @@ namespace ridorana.IC10Inspector.Objects.Items {
             PlaySound(LabelCancelHash);
             InputWindow.OnCancel -= PlayCancelSound;
         }
+
+        public enum ConversionMode {
+            ConversionDouble,
+            ConversionHash
+        }
         
-        public void InputValue(string value, long thingID, IC10ValueType type, int index)
+        public void InputValue(string value, long thingID, IC10ValueType type, int index, ConversionMode conversionMode)
         {
             double result;
-            double.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out result);
+            switch (conversionMode) {
+                case ConversionMode.ConversionHash:
+                    result = Animator.StringToHash(value);
+                    break;
+                case ConversionMode.ConversionDouble:
+                default: {
+                    double.TryParse(value, NumberStyles.Number, CultureInfo.CurrentCulture, out result);
+                    break;
+                }
+            }
             if (double.IsPositiveInfinity(result)) {
                 result = double.MaxValue;
             }
@@ -1352,17 +1371,31 @@ namespace ridorana.IC10Inspector.Objects.Items {
         }*/
         
         public void SetRegister(Thing thing, int index, double currentValue) {
-            if (!InputWindow.ShowInputPanel(string.Format("Set r{0:D}", index), currentValue.ToStringExact(), thing, InventoryManager.Parent, 32 /*0x20*/, TMP_InputField.ContentType.DecimalNumber))
+            if (!InputWindow.ShowInputPanel(string.Format("Set r{0:D}", index), currentValue.ToStringExact(), thing, InventoryManager.Parent, 32 /*0x20*/, TMP_InputField.ContentType.DecimalNumber)) {
                 return;
-            InputWindow.OnSubmit += (input, input2) => InputValue(input, thing.ReferenceId, IC10ValueType.Register, index);
+            }
+
+            InputWindow.OnSubmit += (input, input2) => InputValue(input, thing.ReferenceId, IC10ValueType.Register, index, ConversionMode.ConversionDouble);
             //PlaySound(LabelHash);
             //InputWindow.OnCancel += PlayCancelSound;
         }
         
         public void SetStack(Thing thing, int index, double currentValue) {
-            if (!InputWindow.ShowInputPanel(string.Format("Set stack at addr {0:D}", index), currentValue.ToStringExact(), thing, InventoryManager.Parent, 32 /*0x20*/, TMP_InputField.ContentType.DecimalNumber))
+            if (!InputWindow.ShowInputPanel(string.Format("Set stack at addr {0:D}", index), currentValue.ToStringExact(), thing, InventoryManager.Parent, 32 /*0x20*/, TMP_InputField.ContentType.DecimalNumber)) {
                 return;
-            InputWindow.OnSubmit += (input, input2) => InputValue(input, thing.ReferenceId, IC10ValueType.Stack, index);
+            }
+
+            InputWindow.OnSubmit += (input, input2) => InputValue(input, thing.ReferenceId, IC10ValueType.Stack, index, ConversionMode.ConversionDouble);
+            //PlaySound(LabelHash);
+            //InputWindow.OnCancel += PlayCancelSound;
+        }
+        
+        public void SetStackHash(Thing thing, int index, double currentValue) {
+            if (!InputWindow.ShowInputPanel(string.Format("Set stack to Hash at addr {0:D}", index), currentValue.ToStringExact(), thing, InventoryManager.Parent, 32 /*0x20*/)) {
+                return;
+            }
+
+            InputWindow.OnSubmit += (input, input2) => InputValue(input, thing.ReferenceId, IC10ValueType.Stack, index, ConversionMode.ConversionHash);
             //PlaySound(LabelHash);
             //InputWindow.OnCancel += PlayCancelSound;
         }
