@@ -856,38 +856,42 @@ namespace ridorana.IC10Inspector.Objects.Items {
             base.OnRemovedFromComputer(computer);
             _dropdown.Clear();
         }
-        
-        protected async UniTaskVoid HandleDeviceListChange()
-        {
 
+        protected async UniTaskVoid HandleDeviceListChange() {
+            DebugMotherboard monoBehaviour = this;
             if (!GameManager.IsMainThread)
-            {
                 await UniTask.SwitchToMainThread();
+            CancellationToken cancelToken = UniTaskCancellationExtensions.GetCancellationTokenOnDestroy(monoBehaviour);
+            UniTask uniTask;
+            while (GameManager.GameState != GameState.Running) {
+                uniTask = UniTaskX.NextFrame(cancelToken);
+                await uniTask;
             }
-            CancellationToken cancelToken = this.GetCancellationTokenOnDestroy();
-            while (GameManager.GameState != GameState.Running)
-            {
-                await UniTask.NextFrame(cancelToken);
-            }
-            await UniTask.NextFrame(cancelToken);
-            if (cancelToken.IsCancellationRequested || ParentComputer == null || !ParentComputer.AsThing().isActiveAndEnabled)
-            {
-                return;
-            }
-            List<ILogicable> list = ParentComputer.DeviceList();
-            list.Sort((ILogicable a, ILogicable b) => a.DisplayName.CompareTo(b.DisplayName));
-            _dropdown.Clear();
-            _circuitHolders.Clear();
-            foreach (ILogicable item2 in list)
-            {
-                if (item2 is ICircuitHolder item)
-                {
-                    _dropdown.AddItem(item2.DisplayName);
-                    _circuitHolders.Add(item);
+
+            uniTask = UniTaskX.NextFrame(cancelToken);
+            await uniTask;
+            if (cancelToken.IsCancellationRequested)
+                cancelToken = CancellationToken.None;
+            else if (monoBehaviour.ParentComputer == null)
+                cancelToken = CancellationToken.None;
+            else if (!monoBehaviour.ParentComputer.AsThing().isActiveAndEnabled) {
+                cancelToken = CancellationToken.None;
+            } else {
+                List<ILogicable> logicableList = monoBehaviour.ParentComputer.DeviceList();
+                logicableList.Sort((a, b) => String.Compare(a.DisplayName, b.DisplayName, StringComparison.Ordinal));
+                monoBehaviour._dropdown.Clear();
+                monoBehaviour._circuitHolders.Clear();
+                foreach (ILogicable logicable in logicableList) {
+                    if (logicable is ICircuitHolder circuitHolder) {
+                        monoBehaviour._dropdown.AddItem(logicable.DisplayName);
+                        monoBehaviour._circuitHolders.Add(circuitHolder);
+                    }
                 }
+
+                monoBehaviour._dropdown.ItemsChanged();
+                monoBehaviour._DevicesChanged = false;
+                cancelToken = CancellationToken.None;
             }
-            _dropdown.ItemsChanged();
-            _DevicesChanged = false;
         }
 
         public override void OnInteractableUpdated(Interactable interactable) {

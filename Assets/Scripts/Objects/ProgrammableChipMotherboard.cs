@@ -189,7 +189,7 @@ namespace Assets.Scripts.Objects.Motherboards
 			_DevicesChanged = false;
 		}
 
-		protected async UniTaskVoid HandleDeviceListChange()
+		protected async UniTask HandleDeviceListChange()
 		{
 			if (!GameManager.IsMainThread)
 			{
