@@ -1005,31 +1005,32 @@ namespace ridorana.IC10Inspector.Objects.Items {
         [MethodImpl(MethodImplOptions.NoOptimization)]
         private void CopyCodeLines(string[] codeLines, ProgrammableChip chip) {
             int lineNumber = (int)chip.LineNumber;
-            FieldInfo field = chip.GetType().GetField("_LinesOfCode", BindingFlags.Instance | BindingFlags.NonPublic);
+            FieldInfo field = typeof(ProgrammableChip).GetField("_LinesOfCode", BindingFlags.Instance | BindingFlags.NonPublic);
             //Debug.Log(field);
-            var o = field.GetValue(chip);
-            IList list = (IList)o;
-            IEnumerable enumerable = (IEnumerable)o;
-            //MethodInfo item = o.GetType().GetMethod("Item");
-            //MethodInfo count = o.GetType().GetMethod("Count");
-            //Debug.Log(o);
+            IList list;
+            if (field == null) {
+                list = new ArrayList();
+            } else {
+                var o = field.GetValue(chip);
+                list = (IList)o;
+            }
             int length = list.Count; //(int)count.Invoke(o);
             int start = Math.Min(Math.Max(lineNumber - CodeLinesBefore, 0), length);
             int end = Math.Min(start + CodeLinesTotal, length);
             int j = 0;
             bool codeChanged = false;
-            FieldInfo LineOfCode = null;
+            FieldInfo lineOfCode = null;
             for (int i = start; i < end; i++) {
                 string oldLine = codeLines[j];
                 object v = list[i];
-                if (LineOfCode == null && v != null) {
-                    LineOfCode = v.GetType().GetField("LineOfCode", BindingFlags.Public | BindingFlags.Instance);
+                if (lineOfCode == null && v != null) {
+                    lineOfCode = v.GetType().GetField("LineOfCode", BindingFlags.Public | BindingFlags.Instance);
                 }
 
-                if (LineOfCode != null) {
+                if (lineOfCode != null) {
                     int number = i - lineNumber;
                     var s = string.Format("{0}{1}", number >= 0?"+":"", number);
-                    codeLines[j] = String.Format("pc{0,-2}: {1}", s, (string)LineOfCode.GetValue(v));
+                    codeLines[j] = String.Format("pc{0,-2}: {1}", s, (string)lineOfCode.GetValue(v));
                     codeChanged |= String.Equals(oldLine, codeLines[j]);
                     j++;
                 }
@@ -1047,21 +1048,34 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
 
         public static double[] CopyRegisters(ProgrammableChip chip) {
-            var f = chip.GetType().GetField("_Registers", BindingFlags.NonPublic | BindingFlags.Instance);
+            var f = typeof(ProgrammableChip).GetField("_Registers", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (f == null) {
+                return Array.Empty<double>();
+            }
+
             var retVal = (double[])f.GetValue(chip);
             return retVal;
         }
 
         public static double[] CopyStack(ProgrammableChip chip) {
-            var f = chip.GetType().GetField("_Stack", BindingFlags.NonPublic | BindingFlags.Instance);
+            var f = typeof(ProgrammableChip).GetField("_Stack", BindingFlags.NonPublic | BindingFlags.Instance);
+            if (f == null) {
+                return Array.Empty<double>();
+            }
+
             var retVal = (double[])f.GetValue(chip);
             return retVal;
+
         }
 
         public static double[] CopyStack(ILogicStack chip) {
             var stack = chip.GetLogicStack(); //    chip.GetType().GetField("_Stack", BindingFlags.NonPublic | BindingFlags.Instance);
             lock (stack) {
                 var f = stack.GetType().GetField("_stack", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (f == null) {
+                    return Array.Empty<double>();
+                }
+
                 var retVal = (double[])f.GetValue(stack);
                 return retVal;
             }
@@ -1077,7 +1091,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
         
         private void ReadProcessorState() {
             var compThing = ParentComputer as Thing;
-            if (GameManager.IsBatchMode || ParentComputer == null || !compThing.OnOff || !compThing.Powered)
+            if (GameManager.IsBatchMode || ParentComputer == null || (compThing && (!compThing.OnOff || !compThing.Powered)) || !compThing)
                 return;
             _scannedDevice = GetSelectedDevice(SelectedDeviceIndex);
             lock (_outputText) lock(_statusText) lock(_markers) {
