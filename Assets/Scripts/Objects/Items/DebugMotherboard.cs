@@ -734,7 +734,11 @@ namespace ridorana.IC10Inspector.Objects.Items {
             if (ParentComputer == null) {
                 return;
             }
-            SelectedDeviceIndex = _dropdown.SelectedIndex;
+            // On a dedicated server, _dropdown has no meaningful UI state;
+            // SelectedDeviceIndex is set via SetLogicValue from the client.
+            if (!GameManager.IsBatchMode) {
+                SelectedDeviceIndex = _dropdown.SelectedIndex;
+            }
             Device scannedDevice = GetSelectedDevice(SelectedDeviceIndex);
             if (GameManager.RunSimulation) {
                 if (scannedDevice != null && _interpretDevice != scannedDevice) {
@@ -935,7 +939,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
 
         private void FetchCPUData() {
             var compThing = ParentComputer as Thing;
-            if (GameManager.IsBatchMode || ParentComputer == null || !compThing.OnOff || !compThing.Powered)
+            if (ParentComputer == null || !compThing.OnOff || !compThing.Powered)
                 return;
             if (_interpretDevice != null) {
                 //ConsoleWindow.Print("CW.P: FetchCPUData()");
@@ -962,7 +966,8 @@ namespace ridorana.IC10Inspector.Objects.Items {
                         _registerBuffer[CPUStatusOffset] = (int)status;
 
                         CopyCodeLines(_codeLines, chip);
-                        
+                        changed |= _codeChanged;
+
                         lock (ChangeList) {
                             var stack = CopyStack(chip);
                             for (short i = 0; i < stack.Length; i++) {
@@ -1031,7 +1036,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
                     int number = i - lineNumber;
                     var s = string.Format("{0}{1}", number >= 0?"+":"", number);
                     codeLines[j] = String.Format("pc{0,-2}: {1}", s, (string)lineOfCode.GetValue(v));
-                    codeChanged |= String.Equals(oldLine, codeLines[j]);
+                    codeChanged |= !String.Equals(oldLine, codeLines[j]);
                     j++;
                 }
             }
@@ -1039,7 +1044,7 @@ namespace ridorana.IC10Inspector.Objects.Items {
             for (int i = j; i < (CodeLinesTotal); i++) {
                 string oldLine = codeLines[i];
                 codeLines[i] = string.Empty;
-                codeChanged |= String.Equals(oldLine, codeLines[j]);
+                codeChanged |= !String.Equals(oldLine, codeLines[i]);
             }
 
             _codeChanged = codeChanged;
