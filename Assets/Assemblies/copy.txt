@@ -2,6 +2,7 @@ BepInEx/core/0Harmony.dll
 BepInEx/core/BepInEx.dll
 BepInEx/core/MonoMod.RuntimeDetour.dll
 BepInEx/core/MonoMod.Utils.dll
+BepInEx/plugins/StationeersLaunchPad/LaunchPadBooster.dll
 rocketstation_Data/Managed/Assembly-CSharp.dll
 rocketstation_Data/Managed/Assembly-CSharp-firstpass.dll
 rocketstation_Data/Managed/Accessibility.dll
@@ -10,6 +11,7 @@ rocketstation_Data/Managed/Novell.Directory.Ldap.dll
 rocketstation_Data/Managed/DOTween.dll
 rocketstation_Data/Managed/UniTask.dll
 rocketstation_Data/Managed/ch.sycoforge.Flares.dll
+rocketstation_Data/Managed/ch.sycoforge.Logging.dll
 rocketstation_Data/Managed/ch.sycoforge.Unity.Runtime.dll
 rocketstation_Data/Managed/Facepunch.Steamworks.Win64.dll
 rocketstation_Data/Managed/Newtonsoft.Json.dll
@@ -26,8 +28,8 @@ rocketstation_Data/Managed/Sentry.System.Text.Encodings.Web.dll
 rocketstation_Data/Managed/Sentry.System.Threading.Tasks.Extensions.dll
 rocketstation_Data/Managed/Sentry.Microsoft.Bcl.AsyncInterfaces.dll
 rocketstation_Data/Managed/System.Runtime.CompilerServices.Unsafe.dll
-rocketstation_Data/Managed/NaughtyAttributes.Core.dll
 rocketstation_Data/Managed/RG.ImGui.dll
 rocketstation_Data/Managed/RG.ImGui.Unity.dll
-rocketstation_Data/Managed/RW.RocketNet.dll
+rocketstation_Data/Managed/Brutal.RakNet.dll
 rocketstation_Data/Managed/LZ4.dll
+rocketstation_Data/Managed/io.sentry.unity.runtime.dll
