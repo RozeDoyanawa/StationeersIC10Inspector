@@ -2,7 +2,7 @@
 <ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <Name>IC10 Inspector/Debugger [StationeersLaunchPad]</Name>
   <Author>Roze</Author>
-  <Version>0.3.6</Version>
+  <Version>0.3.7</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]IC10 Inspector/Debugger[/h1]
     [b]WARNING:[/b] This is a StationeersLaunchPad Mod. It requires Bepinex to be installed with the StationeersLaunchPad plugin.
@@ -47,9 +47,9 @@ Please report any bugs in the appropriate discord channels:
   </InGameDescription>
   <!-- All contents of ChangeLog should be changed for each publication for Steam workshop page -->
   <ChangeLog>
-    [h3]Version 0.3.6:[/h3]
+    [h3]Version 0.3.7:[/h3]
     [list]
-    [*]Fix incompatibility with lua mod
+    [*] fix:Debug motherboard should now work on dedicated servers thanks to a fix provided by florpy
     [/list]
   </ChangeLog>
   <!-- StationeersMods and BepInEx tags for Steam workshop page will be automatically added by the framework when publishing -->
